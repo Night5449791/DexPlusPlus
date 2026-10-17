@@ -898,6 +898,18 @@ local function main()
 	local addObject,removeObject,moveObject = nil,nil,nil
 	local nodes = nodes or {}
 
+	-- `game` is a cloned reference (cloneref), so it is never the same table key as the
+	-- DataModel handed back by instance APIs. Key and compare the root with this instead.
+	local rootObj = workspace.Parent
+
+	local function getParentNode(obj)
+		local parObj = ffa(obj,"Instance")
+		if parObj and parObj.ClassName == "DataModel" then
+			parObj = rootObj
+		end
+		return parObj and nodes[parObj]
+	end
+
 	local iconData
 	local remote_blocklist = {} -- list of remotes beng blocked, k = the remote instance, v = their old function :3
 
@@ -905,8 +917,7 @@ local function main()
 		if nodes[root] then return end
 
 		local isNil = false
-		local rootParObj = ffa(root,"Instance")
-		local par = nodes[rootParObj]
+		local par = getParentNode(root)
 
 		-- Nil Handling
 		if not par then
@@ -970,7 +981,7 @@ local function main()
 			local obj = insts[i]
 			if nodes[obj] then continue end -- Deferred
 
-			local par = nodes[ffa(obj,"Instance")]
+			local par = getParentNode(obj)
 			if not par then continue end
 			local newNode = {Obj = obj, Parent = par}
 			nodes[obj] = newNode
@@ -1041,7 +1052,7 @@ local function main()
 		if not node then return end
 
 		local oldPar = node.Parent
-		local newPar = nodes[ffa(obj,"Instance")]
+		local newPar = getParentNode(obj)
 		if oldPar == newPar then return end
 
 		-- Nil Handling
@@ -1270,7 +1281,7 @@ local function main()
 			end
 		end
 
-		recur(nodes[game],1)
+		recur(nodes[rootObj],1)
 
 		-- Nil Instances
 		if env.getnilinstances then
@@ -1293,7 +1304,7 @@ local function main()
 		if Explorer.Dragging then return end
 		for i,v in next, selection.List do
 			local Obj = v.Obj
-			if Obj.Parent == game or Obj:IsA("Player") then
+			if Obj.Parent == rootObj or Obj:IsA("Player") then
 				return
 			end
 		end
@@ -2489,7 +2500,7 @@ local function main()
 
 		for i = 1,#nilInsts do
 			local obj = nilInsts[i]
-			if obj ~= game then
+			if obj ~= rootObj then
 				nilMap[obj] = true
 				--newNilRoots[obj] = true
 
@@ -2556,7 +2567,7 @@ local function main()
 		local formatLuaString = Lib.FormatLuaString
 
 		while curObj do
-			if curObj == game then
+			if curObj == rootObj then
 				path = "game"..path
 				break
 			end
@@ -2578,7 +2589,7 @@ local function main()
 					local parCh = getCh(parObj)
 					local fcInd = tableFind(parCh,curObj)
 					indexName = ":GetChildren()["..fcInd.."]"
-				elseif parObj == game and API.Classes[className] and API.Classes[className].Tags.Service then
+				elseif parObj == rootObj and API.Classes[className] and API.Classes[className].Tags.Service then
 					indexName = ':GetService("'..className..'")'
 				end
 			elseif parObj == nil then
@@ -3039,7 +3050,7 @@ return search]==]
 
 			if searchFunc then
 				local start = tick()
-				searchFunc(nodes[game])
+				searchFunc(nodes[rootObj])
 				searchFunc(nilNode)
 				--warn(tick()-start)
 			end
@@ -3422,8 +3433,8 @@ return search]==]
 		autoUpdateSearch = Settings.Explorer.AutoUpdateSearch
 
 		-- Fill in nodes
-		nodes[game] = {Obj = game}
-		expanded[nodes[game]] = true
+		nodes[rootObj] = {Obj = rootObj}
+		expanded[nodes[rootObj]] = true
 
 		-- Nil Instances
 		if env.getnilinstances then
@@ -3437,7 +3448,7 @@ return search]==]
 		if Main.Elevated then
 			for i = 1,#insts do
 				local obj = insts[i]
-				local par = nodes[ffa(obj,"Instance")]
+				local par = getParentNode(obj)
 				if not par then continue end
 				local newNode = {
 					Obj = obj,
@@ -3449,9 +3460,8 @@ return search]==]
 		else
 			for i = 1,#insts do
 				local obj = insts[i]
-				local s,parObj = pcall(ffa,obj,"Instance")
-				local par = nodes[parObj]
-				if not par then continue end
+				local ok,par = pcall(getParentNode,obj)
+				if not ok or not par then continue end
 				local newNode = {
 					Obj = obj,
 					Parent = par,
