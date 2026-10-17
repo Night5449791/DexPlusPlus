@@ -18,5 +18,10 @@ for filename in sorted(os.listdir("modules")):
 parts.append("}\n")
 parts.append(read_file("main.lua"))
 
-with open("out.lua", "w", encoding="utf-8") as out_file:
+output_dir = "result"
+output_path = os.path.join(output_dir, "out.lua")
+
+os.makedirs(output_dir, exist_ok=True)
+
+with open(output_path, "w", encoding="utf-8") as out_file:
     out_file.write("".join(parts))

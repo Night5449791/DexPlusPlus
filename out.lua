@@ -14410,7 +14410,6 @@ Main = (function()
 	
 	Main.GetSecureContainer = function()
 		return
-			syn and syn.protect_gui or
 			gethui and gethui() or
 			service.CoreGui or
 			service.Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -15657,6 +15656,11 @@ Main = (function()
 	end
 
 	Main.Init = function()
+		local globalEnv = getgenv and getgenv()
+		if globalEnv then
+			globalEnv.dexpploaded = Main
+		end
+
 		Main.Elevated = pcall(function() local a = game:GetService("CoreGui"):GetFullName() end)
 		
 		-- saves new settings if does not exist
@@ -15799,6 +15803,11 @@ Main = (function()
 	end
 	
 	Main.Uninit = function()
+		local globalEnv = getgenv and getgenv()
+		if globalEnv and globalEnv.dexpploaded == Main then
+			globalEnv.dexpploaded = nil
+		end
+
 		Main.MenuApps = {}
 		Main.AppControls = {}
 		Main.Plugins = {}
@@ -15819,6 +15828,15 @@ Main = (function()
 end)()
 
 -- Start
+local globalEnv = getgenv and getgenv()
+if globalEnv and globalEnv.dexpploaded then
+	local previous = globalEnv.dexpploaded
+	if type(previous) == "table" and type(previous.Uninit) == "function" then
+		previous.Uninit()
+	else
+		Main.Uninit()
+	end
+end
 Main.Init()
 
 --for i,v in pairs(Main.MissingEnv) do print(i,v) end

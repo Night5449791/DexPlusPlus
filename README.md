@@ -5,7 +5,7 @@ Dex++ is an extended version of Moon's Dex, made to fulfill some Moon's Dex prop
 
 ## Latest Version Script
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Night5449791/DexPlusPlus/main/out.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Night5449791/DexPlusPlus/main/result/out.lua"))()
 ```
 
 ## What's the difference between Dex and Dex++?
@@ -27,7 +27,7 @@ Here are the features that were added/fixed in Dex++
 1. Download this repository
 2. Ensure you have Python 3
 3. Run build.py
-4. The executable script will be created as out.lua
+4. The executable script will be created as ./result/out.lua
 
 ## About Dex Roadmap
 The concept of the Dex roadmap is amazing, however neither me nor Moon have the ability to fulfil the full roadmap. I did have added few stuffs in my fork but mostly of them are beyond my limit and i did this project for fun.
