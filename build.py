@@ -1,32 +1,22 @@
 import os
 
-headerText = open("header.lua","r")
-embedStr = headerText.read() + "\n\nlocal EmbeddedModules = {\n"
-headerText.close()
 
-files = os.listdir("modules")
+def read_file(path):
+    with open(path, "r", encoding="utf-8") as file:
+        return file.read()
 
 
-def readfile(path):
-    file = open(path,"r")
-    str = file.read()
-    file.close()
-    return str
+parts = [read_file("header.lua"), "\n\nlocal EmbeddedModules = {\n"]
 
-def addModuleFile(path):
-    global embedStr
+for filename in sorted(os.listdir("modules")):
+    module_path = os.path.join("modules", filename)
+    if os.path.isfile(module_path):
+        module_name = os.path.splitext(filename)[0]
+        module_source = read_file(module_path)
+        parts.append(f'["{module_name}"] = function()\n{module_source}\nend,\n')
 
-    moduleName = os.path.splitext(os.path.basename(path))[0]
-    moduleSource = readfile(path)
+parts.append("}\n")
+parts.append(read_file("main.lua"))
 
-    embedStr = embedStr + '["' + moduleName + '"] = function()\n' + moduleSource + '\nend,\n'
-
-for filename in files:
-    addModuleFile("modules/" + filename)
-
-embedStr = embedStr + "}"
-embedStr = embedStr + "\n" + readfile("main.lua")
-
-file = open("out.lua","w")
-file.write(embedStr)
-file.close()
+with open("out.lua", "w", encoding="utf-8") as out_file:
+    out_file.write("".join(parts))

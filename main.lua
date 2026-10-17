@@ -149,14 +149,18 @@ local plr = service.Players.LocalPlayer or service.Players.PlayerAdded:wait()
 
 local create = function(data)
 	local insts = {}
-	for i,v in pairs(data) do insts[v[1]] = Instance.new(v[2]) end
+	local instanceType = Instance.new
+	for _, v in pairs(data) do
+		insts[v[1]] = instanceType(v[2])
+	end
 
-	for _,v in pairs(data) do
-		for prop,val in pairs(v[3]) do
+	for _, v in pairs(data) do
+		local target = insts[v[1]]
+		for prop, val in pairs(v[3]) do
 			if type(val) == "table" then
-				insts[v[1]][prop] = insts[val[1]]
+				target[prop] = insts[val[1]]
 			else
-				insts[v[1]][prop] = val
+				target[prop] = val
 			end
 		end
 	end
@@ -164,10 +168,10 @@ local create = function(data)
 	return insts[1]
 end
 
-local createSimple = function(class,props)
+local createSimple = function(class, props)
 	local inst = Instance.new(class)
-	for i,v in next,props do
-		inst[i] = v
+	for key, value in next, props do
+		inst[key] = value
 	end
 	return inst
 end
@@ -330,6 +334,13 @@ Main = (function()
 	end
 
 	Main.LoadModule = function(name)
+		local cachedControl = Main.AppControls[name]
+		if cachedControl and cachedControl.Main then
+			if Apps[name] then
+				return Apps[name]
+			end
+		end
+
 		if Main.Elevated then -- If you don't have filesystem api then ur outta luck tbh
 			local control
 
@@ -416,10 +427,12 @@ Main = (function()
 	end
 
 	Main.LoadModules = function()
-		for i,v in pairs(Main.ModuleList) do
-			local s,e = pcall(Main.LoadModule,v)
+		local moduleList = Main.ModuleList
+		for i = 1, #moduleList do
+			local name = moduleList[i]
+			local s, e = pcall(Main.LoadModule, name)
 			if not s then
-				Main.Error("FAILED LOADING " .. v .. " CAUSE " .. e)
+				Main.Error("FAILED LOADING " .. name .. " CAUSE " .. e)
 			end
 		end
 
@@ -432,9 +445,7 @@ Main = (function()
 		ModelViewer = Apps.ModelViewer
 		Notebook = Apps.Notebook
 		SettingsWindow = Apps.SettingsWindow
-		
-		
-		--SecretServicePanel = Apps.SecretServicePanel
+
 		local appTable = {
 			Explorer = Explorer,
 			Properties = Properties,
@@ -444,14 +455,11 @@ Main = (function()
 			ModelViewer = ModelViewer,
 			Notebook = Notebook,
 			SettingsWindow = SettingsWindow
-			--SecretServicePanel = SecretServicePanel,
 		}
-		
-		
 
 		Main.AppControls.Lib.InitAfterMain(appTable)
-		for i,v in pairs(Main.ModuleList) do
-			local control = Main.AppControls[v]
+		for i = 1, #moduleList do
+			local control = Main.AppControls[moduleList[i]]
 			if control then
 				control.InitAfterMain(appTable)
 			end
