@@ -50,10 +50,10 @@ local function main()
 	local nilMap,nilCons = {},{}
 	local connectSignal = game.DescendantAdded.Connect
 	local addObject,removeObject,moveObject = nil,nil,nil
+	local nodes = nodes or {}
 
 	local iconData
 	local remote_blocklist = {} -- list of remotes beng blocked, k = the remote instance, v = their old function :3
-	nodes = nodes or {}
 
 	addObject = function(root)
 		if nodes[root] then return end
@@ -2454,7 +2454,7 @@ return search]==]
 		if Settings.ClassIcon ~= nil and Settings.ClassIcon ~= "Old" then
 			iconData = Lib.IconMap.getIconDataFromName(Settings.ClassIcon)
 			
-			Explorer.ClassIcons = Lib.IconMap.new("rbxassetid://"..tostring(iconData.MapId), iconData.IconSize * iconData.Witdh, iconData.IconSize * iconData.Height,iconData.IconSize,iconData.IconSize)
+			Explorer.ClassIcons = Lib.IconMap.new("rbxassetid://"..tostring(iconData.MapId), iconData.IconSize * iconData.Width, iconData.IconSize * iconData.Height,iconData.IconSize,iconData.IconSize)
 			-- move every value dict 1 behind because SetDict starts at 0 not 1 lol
 			local fixed = {}
 			for i,v in pairs(iconData.Icons) do
