@@ -188,7 +188,7 @@ Main = (function()
 	Main.AppControls = {}
 	Main.Apps = Apps
 	Main.MenuApps = {}
-	Main.GitName = "AZYsGithub"
+	Main.GitName = "Night5449791"
 	Main.RepoName = "DexPlusPlus"
 	Main.GitRepoName = Main.GitName.."/"..Main.RepoName
 
@@ -267,12 +267,11 @@ Main = (function()
 	end]]
 	
 	Main.GetRandomString = function()
-		local output = ""
-		for i = 2, 25 do
-			output = output .. string.char(math.random(1,250))
+		local output = {}
+		for i = 1, 24 do
+			output[i] = string.char(math.random(32, 126))
 		end
-		
-		return output
+		return table.concat(output)
 	end
 	
 	Main.GetSecureContainer = function()

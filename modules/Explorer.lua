@@ -385,6 +385,9 @@ local function main()
 		local sortFunc = Explorer.NodeSorter
 		local isSearching = (expanded == Explorer.SearchExpanded)
 		local textServ = service.TextService
+		local treeTable = tree
+		local searchResultCache = searchResults
+		local expandedCache = expanded
 
 		local function recur(root,depth)
 			if depth > maxDepth then maxDepth = depth end
@@ -395,8 +398,7 @@ local function main()
 			end
 			for i = 1,#root do
 				local n = root[i]
-
-				if (isSearching and not searchResults[n]) or n.Del then continue end
+				if (isSearching and not searchResultCache[n]) or n.Del then continue end
 
 				if useNameWidth then
 					local nameWidth = n.NameWidth
@@ -414,9 +416,9 @@ local function main()
 					end
 				end
 
-				tree[count] = n
+				treeTable[count] = n
 				count = count + 1
-				if expanded[n] and #n > 0 then
+				if expandedCache[n] and #n > 0 then
 					recur(n,depth)
 				end
 			end
@@ -426,10 +428,10 @@ local function main()
 
 		-- Nil Instances
 		if env.getnilinstances then
-			if not (isSearching and not searchResults[nilNode]) then
-				tree[count] = nilNode
+			if not (isSearching and not searchResultCache[nilNode]) then
+				treeTable[count] = nilNode
 				count = count + 1
-				if expanded[nilNode] then
+				if expandedCache[nilNode] then
 					recur(nilNode,2)
 				end
 			end
@@ -779,6 +781,13 @@ local function main()
 		if descendantAddedCon then descendantAddedCon:Disconnect() end
 		if descendantRemovingCon then descendantRemovingCon:Disconnect() end
 		if itemChangedCon then itemChangedCon:Disconnect() end
+		descendantAddedCon = nil
+		descendantRemovingCon = nil
+		itemChangedCon = nil
+
+		if not Explorer.Active then
+			return
+		end
 
 		if Main.Elevated then
 			descendantAddedCon = game.DescendantAdded:Connect(addObject)
@@ -2542,18 +2551,26 @@ return search]==]
 		end)
 		window.OnActivate:Connect(function()
 			Explorer.Active = true
+			Explorer.SetupConnections()
 			Explorer.UpdateView()
 			Explorer.Update()
 			Explorer.Refresh()
 		end)
 		window.OnRestore:Connect(function()
 			Explorer.Active = true
+			Explorer.SetupConnections()
 			Explorer.UpdateView()
 			Explorer.Update()
 			Explorer.Refresh()
 		end)
-		window.OnDeactivate:Connect(function() Explorer.Active = false end)
-		window.OnMinimize:Connect(function() Explorer.Active = false end)
+		window.OnDeactivate:Connect(function()
+			Explorer.Active = false
+			Explorer.SetupConnections()
+		end)
+		window.OnMinimize:Connect(function()
+			Explorer.Active = false
+			Explorer.SetupConnections()
+		end)
 
 		-- Settings
 		autoUpdateSearch = Settings.Explorer.AutoUpdateSearch
@@ -2567,6 +2584,7 @@ return search]==]
 			nodes[nilNode.Obj] = nilNode
 		end
 
+		Explorer.Active = false
 		Explorer.SetupConnections()
 
 		local insts = getDescendants(game)
