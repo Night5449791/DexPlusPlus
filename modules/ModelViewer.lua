@@ -55,34 +55,7 @@ local function main()
 	
 	local window, viewportFrame, pathLabel, settingsButton
 	local model, camera, originalModel
-	local renderConnection
-
-	local function refreshRenderConnection()
-		if not window or not window:IsVisible() or not model or not ModelViewer.IsViewing then
-			if renderConnection then
-				renderConnection:Disconnect()
-				renderConnection = nil
-			end
-			return
-		end
-
-		if renderConnection then return end
-		renderConnection = RunService.RenderStepped:Connect(function(dt)
-			if camera and model then
-				if not dragging and ModelViewer.AutoRotate then
-					rotationY += ModelViewer.RotationSpeed * dt * 60
-				end
-				
-				local center = model.PrimaryPart.Position
-				local offset = CFrame.new(0, 0, distance)
-				local rotation = CFrame.Angles(0, rotationY, 0) * CFrame.Angles(rotationX, 0, 0)
-
-				local camCF = CFrame.new(center) * rotation * offset
-
-				camera.CFrame = CFrame.lookAt(camCF.Position, center)
-			end
-		end)
-	end
+	
 	
 	ModelViewer.StopViewModel = function(updating)
 		if updating then
@@ -171,7 +144,6 @@ local function main()
 			pathLabel.Gui.Text = "path: " .. getPath(originalModel)
 			window:Show()
 			ModelViewer.IsViewing = true
-			refreshRenderConnection()
 		end
 	end
 
@@ -259,19 +231,20 @@ local function main()
 			end
 		end)
 
-		window.OnActivate:Connect(function()
-			refreshRenderConnection()
-		end)
-		window.OnDeactivate:Connect(function()
-			if renderConnection then
-				renderConnection:Disconnect()
-				renderConnection = nil
-			end
-		end)
-		window.OnMinimize:Connect(function()
-			if renderConnection then
-				renderConnection:Disconnect()
-				renderConnection = nil
+		RunService.RenderStepped:Connect(function(dt)
+			if camera and model then
+				if not dragging and ModelViewer.AutoRotate then
+					rotationY += ModelViewer.RotationSpeed * dt * 60
+				end
+				
+				local center = model.PrimaryPart.Position
+				local offset = CFrame.new(0, 0, distance)
+				local rotation = CFrame.Angles(0, rotationY, 0) * CFrame.Angles(rotationX, 0, 0)
+
+				local camCF = CFrame.new(center) * rotation * offset
+
+				camera.CFrame = CFrame.lookAt(camCF.Position, center)
+				
 			end
 		end)
 		

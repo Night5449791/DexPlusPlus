@@ -896,28 +896,17 @@ local function main()
 	local nilMap,nilCons = {},{}
 	local connectSignal = game.DescendantAdded.Connect
 	local addObject,removeObject,moveObject = nil,nil,nil
-	local nodes = nodes or {}
-
-	-- `game` is a cloned reference (cloneref), so it is never the same table key as the
-	-- DataModel handed back by instance APIs. Key and compare the root with this instead.
-	local rootObj = workspace.Parent
-
-	local function getParentNode(obj)
-		local parObj = ffa(obj,"Instance")
-		if parObj and parObj.ClassName == "DataModel" then
-			parObj = rootObj
-		end
-		return parObj and nodes[parObj]
-	end
 
 	local iconData
 	local remote_blocklist = {} -- list of remotes beng blocked, k = the remote instance, v = their old function :3
+	nodes = nodes or {}
 
 	addObject = function(root)
 		if nodes[root] then return end
 
 		local isNil = false
-		local par = getParentNode(root)
+		local rootParObj = ffa(root,"Instance")
+		local par = nodes[rootParObj]
 
 		-- Nil Handling
 		if not par then
@@ -981,7 +970,7 @@ local function main()
 			local obj = insts[i]
 			if nodes[obj] then continue end -- Deferred
 
-			local par = getParentNode(obj)
+			local par = nodes[ffa(obj,"Instance")]
 			if not par then continue end
 			local newNode = {Obj = obj, Parent = par}
 			nodes[obj] = newNode
@@ -1052,7 +1041,7 @@ local function main()
 		if not node then return end
 
 		local oldPar = node.Parent
-		local newPar = getParentNode(obj)
+		local newPar = nodes[ffa(obj,"Instance")]
 		if oldPar == newPar then return end
 
 		-- Nil Handling
@@ -1242,9 +1231,6 @@ local function main()
 		local sortFunc = Explorer.NodeSorter
 		local isSearching = (expanded == Explorer.SearchExpanded)
 		local textServ = service.TextService
-		local treeTable = tree
-		local searchResultCache = searchResults
-		local expandedCache = expanded
 
 		local function recur(root,depth)
 			if depth > maxDepth then maxDepth = depth end
@@ -1255,7 +1241,8 @@ local function main()
 			end
 			for i = 1,#root do
 				local n = root[i]
-				if (isSearching and not searchResultCache[n]) or n.Del then continue end
+
+				if (isSearching and not searchResults[n]) or n.Del then continue end
 
 				if useNameWidth then
 					local nameWidth = n.NameWidth
@@ -1273,22 +1260,22 @@ local function main()
 					end
 				end
 
-				treeTable[count] = n
+				tree[count] = n
 				count = count + 1
-				if expandedCache[n] and #n > 0 then
+				if expanded[n] and #n > 0 then
 					recur(n,depth)
 				end
 			end
 		end
 
-		recur(nodes[rootObj],1)
+		recur(nodes[game],1)
 
 		-- Nil Instances
 		if env.getnilinstances then
-			if not (isSearching and not searchResultCache[nilNode]) then
-				treeTable[count] = nilNode
+			if not (isSearching and not searchResults[nilNode]) then
+				tree[count] = nilNode
 				count = count + 1
-				if expandedCache[nilNode] then
+				if expanded[nilNode] then
 					recur(nilNode,2)
 				end
 			end
@@ -1304,7 +1291,7 @@ local function main()
 		if Explorer.Dragging then return end
 		for i,v in next, selection.List do
 			local Obj = v.Obj
-			if Obj.Parent == rootObj or Obj:IsA("Player") then
+			if Obj.Parent == game or Obj:IsA("Player") then
 				return
 			end
 		end
@@ -1638,13 +1625,6 @@ local function main()
 		if descendantAddedCon then descendantAddedCon:Disconnect() end
 		if descendantRemovingCon then descendantRemovingCon:Disconnect() end
 		if itemChangedCon then itemChangedCon:Disconnect() end
-		descendantAddedCon = nil
-		descendantRemovingCon = nil
-		itemChangedCon = nil
-
-		if not Explorer.Active then
-			return
-		end
 
 		if Main.Elevated then
 			descendantAddedCon = game.DescendantAdded:Connect(addObject)
@@ -2500,7 +2480,7 @@ local function main()
 
 		for i = 1,#nilInsts do
 			local obj = nilInsts[i]
-			if obj ~= rootObj then
+			if obj ~= game then
 				nilMap[obj] = true
 				--newNilRoots[obj] = true
 
@@ -2567,7 +2547,7 @@ local function main()
 		local formatLuaString = Lib.FormatLuaString
 
 		while curObj do
-			if curObj == rootObj then
+			if curObj == game then
 				path = "game"..path
 				break
 			end
@@ -2589,7 +2569,7 @@ local function main()
 					local parCh = getCh(parObj)
 					local fcInd = tableFind(parCh,curObj)
 					indexName = ":GetChildren()["..fcInd.."]"
-				elseif parObj == rootObj and API.Classes[className] and API.Classes[className].Tags.Service then
+				elseif parObj == game and API.Classes[className] and API.Classes[className].Tags.Service then
 					indexName = ':GetService("'..className..'")'
 				end
 			elseif parObj == nil then
@@ -3050,7 +3030,7 @@ return search]==]
 
 			if searchFunc then
 				local start = tick()
-				searchFunc(nodes[rootObj])
+				searchFunc(nodes[game])
 				searchFunc(nilNode)
 				--warn(tick()-start)
 			end
@@ -3311,7 +3291,7 @@ return search]==]
 		if Settings.ClassIcon ~= nil and Settings.ClassIcon ~= "Old" then
 			iconData = Lib.IconMap.getIconDataFromName(Settings.ClassIcon)
 			
-			Explorer.ClassIcons = Lib.IconMap.new("rbxassetid://"..tostring(iconData.MapId), iconData.IconSize * iconData.Width, iconData.IconSize * iconData.Height,iconData.IconSize,iconData.IconSize)
+			Explorer.ClassIcons = Lib.IconMap.new("rbxassetid://"..tostring(iconData.MapId), iconData.IconSize * iconData.Witdh, iconData.IconSize * iconData.Height,iconData.IconSize,iconData.IconSize)
 			-- move every value dict 1 behind because SetDict starts at 0 not 1 lol
 			local fixed = {}
 			for i,v in pairs(iconData.Icons) do
@@ -3408,47 +3388,38 @@ return search]==]
 		end)
 		window.OnActivate:Connect(function()
 			Explorer.Active = true
-			Explorer.SetupConnections()
 			Explorer.UpdateView()
 			Explorer.Update()
 			Explorer.Refresh()
 		end)
 		window.OnRestore:Connect(function()
 			Explorer.Active = true
-			Explorer.SetupConnections()
 			Explorer.UpdateView()
 			Explorer.Update()
 			Explorer.Refresh()
 		end)
-		window.OnDeactivate:Connect(function()
-			Explorer.Active = false
-			Explorer.SetupConnections()
-		end)
-		window.OnMinimize:Connect(function()
-			Explorer.Active = false
-			Explorer.SetupConnections()
-		end)
+		window.OnDeactivate:Connect(function() Explorer.Active = false end)
+		window.OnMinimize:Connect(function() Explorer.Active = false end)
 
 		-- Settings
 		autoUpdateSearch = Settings.Explorer.AutoUpdateSearch
 
 		-- Fill in nodes
-		nodes[rootObj] = {Obj = rootObj}
-		expanded[nodes[rootObj]] = true
+		nodes[game] = {Obj = game}
+		expanded[nodes[game]] = true
 
 		-- Nil Instances
 		if env.getnilinstances then
 			nodes[nilNode.Obj] = nilNode
 		end
 
-		Explorer.Active = false
 		Explorer.SetupConnections()
 
 		local insts = getDescendants(game)
 		if Main.Elevated then
 			for i = 1,#insts do
 				local obj = insts[i]
-				local par = getParentNode(obj)
+				local par = nodes[ffa(obj,"Instance")]
 				if not par then continue end
 				local newNode = {
 					Obj = obj,
@@ -3460,8 +3431,9 @@ return search]==]
 		else
 			for i = 1,#insts do
 				local obj = insts[i]
-				local ok,par = pcall(getParentNode,obj)
-				if not ok or not par then continue end
+				local s,parObj = pcall(ffa,obj,"Instance")
+				local par = nodes[parObj]
+				if not par then continue end
 				local newNode = {
 					Obj = obj,
 					Parent = par,
@@ -10818,34 +10790,7 @@ local function main()
 	
 	local window, viewportFrame, pathLabel, settingsButton
 	local model, camera, originalModel
-	local renderConnection
-
-	local function refreshRenderConnection()
-		if not window or not window:IsVisible() or not model or not ModelViewer.IsViewing then
-			if renderConnection then
-				renderConnection:Disconnect()
-				renderConnection = nil
-			end
-			return
-		end
-
-		if renderConnection then return end
-		renderConnection = RunService.RenderStepped:Connect(function(dt)
-			if camera and model then
-				if not dragging and ModelViewer.AutoRotate then
-					rotationY += ModelViewer.RotationSpeed * dt * 60
-				end
-				
-				local center = model.PrimaryPart.Position
-				local offset = CFrame.new(0, 0, distance)
-				local rotation = CFrame.Angles(0, rotationY, 0) * CFrame.Angles(rotationX, 0, 0)
-
-				local camCF = CFrame.new(center) * rotation * offset
-
-				camera.CFrame = CFrame.lookAt(camCF.Position, center)
-			end
-		end)
-	end
+	
 	
 	ModelViewer.StopViewModel = function(updating)
 		if updating then
@@ -10934,7 +10879,6 @@ local function main()
 			pathLabel.Gui.Text = "path: " .. getPath(originalModel)
 			window:Show()
 			ModelViewer.IsViewing = true
-			refreshRenderConnection()
 		end
 	end
 
@@ -11022,19 +10966,20 @@ local function main()
 			end
 		end)
 
-		window.OnActivate:Connect(function()
-			refreshRenderConnection()
-		end)
-		window.OnDeactivate:Connect(function()
-			if renderConnection then
-				renderConnection:Disconnect()
-				renderConnection = nil
-			end
-		end)
-		window.OnMinimize:Connect(function()
-			if renderConnection then
-				renderConnection:Disconnect()
-				renderConnection = nil
+		RunService.RenderStepped:Connect(function(dt)
+			if camera and model then
+				if not dragging and ModelViewer.AutoRotate then
+					rotationY += ModelViewer.RotationSpeed * dt * 60
+				end
+				
+				local center = model.PrimaryPart.Position
+				local offset = CFrame.new(0, 0, distance)
+				local rotation = CFrame.Angles(0, rotationY, 0) * CFrame.Angles(rotationX, 0, 0)
+
+				local camCF = CFrame.new(center) * rotation * offset
+
+				camera.CFrame = CFrame.lookAt(camCF.Position, center)
+				
 			end
 		end)
 		
