@@ -5,9 +5,8 @@ Dex++ is an extended version of Moon's Dex, made to fulfill some Moon's Dex prop
 
 ## Latest Version Script
 ```lua
-loadstring(game:HttpGet("https://github.com/AZYsGithub/DexPlusPlus/releases/latest/download/out.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Night5449791/DexPlusPlus/main/out.lua"))()
 ```
-For specific versions, go to [releases](https://github.com/AZYsGithub/DexPlusPlus/releases).
 
 ## What's the difference between Dex and Dex++?
 Since the original Dex is the last release and Moon have discontinued it, it still has some missing features.
@@ -26,18 +25,18 @@ Here are the features that were added/fixed in Dex++
 
 ## To Build
 1. Download this repository
-2. Ensure you have Python 3 (I use 3.9.0)
+2. Ensure you have Python 3
 3. Run build.py
 4. The executable script will be created as out.lua
 
 ## About Dex Roadmap
 The concept of the Dex roadmap is amazing, however neither me nor Moon have the ability to fulfil the full roadmap. I did have added few stuffs in my fork but mostly of them are beyond my limit and i did this project for fun.
 
-## Our Discord Server
+## Chillz Discord Server
 https://discord.gg/ndhGeSGkWn
 
 ## Donation
-Every donation is highly apreciated, this is compeletely optional.
+Every donation will sent to Chillz (Dex++ Owner), this is compeletely optional.
 - 113mGk11Hz7KoHmVhffMhFRGGt4xyofsn6 (BTC)
 - 0xf66604a05c5a5372b1480a0b79f86865dccbd7db (BNB)
 - 0xf66604a05c5a5372b1480a0b79f86865dccbd7db (ETH)
@@ -49,12 +48,13 @@ Every donation is highly apreciated, this is compeletely optional.
 - [Shiny](https://github.com/rocult/shiny)/[Medal](https://github.com/shrimp-nz/medal)
 
 ## License
-[![Dex++ License](https://img.shields.io/badge/Dex++-License-green)](https://github.com/AZYsGithub/DexPlusPlus/blob/main/LICENSE)
+[![Dex++ License](https://img.shields.io/badge/Dex++-License-green)](https://github.com/Night5449791/DexPlusPlus/blob/main/LICENSE)
 
 [![USSI License](https://img.shields.io/badge/USSI-License-green)](https://github.com/luau/UniversalSynSaveInstance/blob/main/LICENSE)
 
 ## Credits
-- [Chillz](https://github.com/AZYsGithub) – Dex++ Maintainer  
+- [Night5449791](https://github.com/Night5449791) - Fork owner
+- [Chillz](https://github.com/AZYsGithub) – Original Dex++ Maintainer  
 - [Cazan](https://github.com/Cazzanos) – Helped me develop the Model Viewer  
 - [Moon](https://github.com/LorekeeperZinnia/Dex) – Original Dex Explorer  
 - [Toon](https://github.com/Toon-arch) – Contributor and IY's Dex parts and components
